@@ -1,0 +1,18 @@
+{
+	"name": "org.visualpinball.engine.debugimgui.unity",
+	"version": "0.1.0",
+	"displayName": "Debug ImGUI for Visual Pinball Engine",
+	"description": "Work In Progress!",
+	"unity": "2019.3",
+	"unityRelease": "3f1",
+	"dependencies": {
+	},
+	"keywords": [
+		"Pinball",
+		"Visual",
+		"Editor",
+		"ImGUI"
+	],
+	"author": "ravarcade <ravarcade@gmail.com>",
+	"contributors": []
+}
