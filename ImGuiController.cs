@@ -2,7 +2,7 @@
 using ImGuiNET;
 using UnityEngine;
 
-namespace DebugGui
+namespace VisualPinball.Engine.Unity.ImgGUI
 {
     public class ImGuiController
     {

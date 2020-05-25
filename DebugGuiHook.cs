@@ -19,26 +19,7 @@ using VisualPinball.Unity.Physics;
 using UnityEditor;
 #endif
 
-public static class ReflectionHelpers
- {
-	 public static System.Type[] GetAllDerivedTypes(this System.AppDomain aAppDomain, System.Type aType)
-	 {
-		 var result = new List<System.Type>();
-		 var assemblies = aAppDomain.GetAssemblies();
-		 foreach (var assembly in assemblies)
-		 {
-			 var types = assembly.GetTypes();
-			 foreach (var type in types)
-			 {
-				 if (type.IsSubclassOf(aType))
-					 result.Add(type);
-			 }
-		 }
-		 return result.ToArray();
-	 }
- }
-
-namespace DebugGui
+namespace VisualPinball.Engine.Unity.ImgGUI
 {
 
 	[AddComponentMenu("Visual Pinball/Debug GUI")]
@@ -75,9 +56,12 @@ namespace DebugGui
 			StartCoroutine("CallPluginAtEndOfFrames");
 			var players = GameObject.FindObjectsOfType<Player>();
 			player = players?[0];
-			player.physicsEngine.PushUI_PhysicsProcessingTime += OnPhysicsProcessingTime;
-			player.physicsEngine.PushUI_DebugFlipperData += OnDebugSubmit;
-			player.physicsEngine.GetUI_Float += GetUI_Float;
+			if (player.physicsEngine != null)
+			{
+				player.physicsEngine.PushUI_PhysicsProcessingTime += OnPhysicsProcessingTime;
+				player.physicsEngine.PushUI_DebugFlipperData += OnDebugSubmit;
+				player.physicsEngine.GetUI_Float += GetUI_Float;
+			}
 		}
 
 		float SyncParam(ref float param, float currentValue)
@@ -266,7 +250,7 @@ namespace DebugGui
 			if (dist < epsilon)
 			{
 				var p = ray.origin - ray.direction * dist;
-				player.physicsEngine.ManualBallRoller(p);
+				player.physicsEngine?.ManualBallRoller(p);
 			}
 		}
 
@@ -328,7 +312,7 @@ namespace DebugGui
 				ImGui_SliderFloat("Num of degree near end", ref flipperNumOfDegreeNearEnd, 0.1f, 10.0f);
 				ImGui.Separator();
 				ImGui.SliderInt("Num frames on chart", ref numFramesOnChart, 10, 500);
-				player.physicsEngine.OnDebugDraw();
+				player.physicsEngine?.OnDebugDraw();
 				ImGui.TreePop();
 				ImGui.Separator();
 			}
