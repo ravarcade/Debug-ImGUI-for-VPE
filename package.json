@@ -1,5 +1,5 @@
 {
-	"name": "org.visualpinball.engine.debugimgui.unity",
+	"name": "org.visualpinball.engine.unity.imgui",
 	"version": "0.1.0",
 	"displayName": "Debug ImGUI for Visual Pinball Engine",
 	"description": "Work In Progress!",
