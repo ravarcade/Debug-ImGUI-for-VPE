@@ -1,28 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using ImGuiNET;
 
-
-using Player = VisualPinball.Unity.Game.Player;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Engine.VPT.Ball;
-using Unity.Assertions;
-using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
-using VisualPinball.Unity.Physics;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.DebugUI_Interfaces;
-
-using VisualPinball.Engine.Unity.ImgGUI.Tools;
-
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
-    internal class DebugOverlay
+	internal class DebugOverlay
     {
 		private int corner = 0;
 
@@ -59,9 +40,11 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
 			if (ImGui.Begin("Simple overlay", ref debugUIClient.showOverlayWindow, (corner != -1 ? ImGuiWindowFlags.NoMove : 0) | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav))
 			{
+				ImGui.PushItemWidth(-1);
 				debugUIClient._fps.Draw("FPS: ");
 				debugUIClient._physicsTicks.Draw("Physics: ");
 				debugUIClient._physicsTimes.Draw("", "Physics time: ","n1");
+				ImGui.PopItemWidth();
 
 				if (ImGui.IsMousePosValid())
 					ImGui.Text("Mouse Position: (" + io.MousePos.X.ToString("n1") + ", " + io.MousePos.Y.ToString("n1") + ")");

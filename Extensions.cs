@@ -1,24 +1,5 @@
 using System.Diagnostics;
-
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using UnityEngine;
 using ImGuiNET;
-
-
-using Player = VisualPinball.Unity.Game.Player;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Engine.VPT.Ball;
-using Unity.Assertions;
-using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
-using VisualPinball.Unity.Physics;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.DebugUI_Interfaces;
 
 namespace VisualPinball.Engine.Unity.ImgGUI.Tools
 {
@@ -160,7 +141,17 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         
         private ChartFloat _chart;
         private Stopwatch _watch;
-        private QueueBuffer<double> _ticks;
+        internal struct TickData
+        {
+            public double time;
+            public int frame;
+            public TickData(double t, int fr)
+            {
+                time = t;
+                frame = fr;
+            }
+        }
+        private QueueBuffer<TickData> _ticks;
 
         private double _now { get => _watch.Elapsed.TotalSeconds; }
         public int count { get => _frames; }
@@ -171,28 +162,28 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             _precision = precision;
             _frames = 0;
             _val = 0;
-            _ticks = new QueueBuffer<double>(ticksBufSize);
+            _ticks = new QueueBuffer<TickData>(ticksBufSize);
             _chart = new ChartFloat(100, min, max, 50);
             _watch = new Stopwatch();
             _watch.Start();
             
         }
 
-        public void Tick()
+        public void Tick(int numTicks = 1)
         {
-            ++_frames;
-            _ticks.Push(_now);
+            _frames += numTicks;
+            _ticks.Push(new TickData(_now, _frames));
         }
 
         private void _Update()
         {
             double now = _now;
-            while (_ticks.size > 2 && (now - 1.0) > _ticks.front) // remove older than 1 second values
+            while (_ticks.size > 2 && (now - 1.0) > _ticks.front.time) // remove older than 1 second values
                 _ticks.Pop();
 
             if (_ticks.size >= 2)
             {
-                _val = (float)((double)(_ticks.size-1) / (_ticks.back - _ticks.front));
+                _val = (float)((double)(_ticks.back.frame - _ticks.front.frame) / (_ticks.back.time - _ticks.front.time));
                 if (_drawChart)
                     _chart.Add(_val);
             }
@@ -210,24 +201,5 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
                 ImGui.Text(label + _val.ToString(_precision));
             }
         }
-    }
-
-    //internal class DebugBallCreator : IBallCreationPosition
-    //{
-    //    public Vertex3D GetBallCreationPosition(Table table)
-    //    {
-    //        return new Vertex3D(UnityEngine.Random.Range(table.Width / 4f, table.Width / 4f * 3f), UnityEngine.Random.Range(table.Height / 5f, table.Height / 2f), UnityEngine.Random.Range(0, 200f));
-    //    }
-
-    //    public Vertex3D GetBallCreationVelocity(Table table)
-    //    {
-    //        // no velocity
-    //        return Vertex3D.Zero;
-    //    }
-
-    //    public void OnBallCreated(PlayerPhysics physics, Ball ball)
-    //    {
-    //        // nothing to do
-    //    }
-    //}
+    }    
 }

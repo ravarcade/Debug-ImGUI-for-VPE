@@ -1,24 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using ImGuiNET;
 
-
-using Player = VisualPinball.Unity.Game.Player;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Engine.VPT.Ball;
-using Unity.Assertions;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
-using VisualPinball.Unity.Physics;
 using VisualPinball.Unity.Game;
-using VisualPinball.Unity.DebugUI_Interfaces;
-
+using VisualPinball.Unity.DebugAndPhysicsComunicationProxy;
 using VisualPinball.Engine.Unity.ImgGUI.Tools;
+using Player = VisualPinball.Unity.Game.Player;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -28,149 +17,260 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 {
     internal class DebugUIClient : IDebugUI
     {
-		private DebugOverlay debugOverlay = new DebugOverlay();
-		public bool showOverlayWindow = true;
-		public bool showDebugWindow = true;
-		public bool showDemoWindow = false;
+        const int _MaxSolenoidAnglesDataLength = 500;
+        public int numFramesOnChart = 200;
+
+        private DebugOverlay debugOverlay = new DebugOverlay();
+        public bool showOverlayWindow = true;
+        public bool showDebugWindow = true;
+        public bool showDemoWindow = false;
 
 
-		public FPSHelper _fps = new FPSHelper(true, 0, 100, "n1");
-		public FPSHelper _physicsTicks = new FPSHelper(true, 0, 1500, "n0", 300);
-		public ChartFloat _physicsTimes = new ChartFloat(100, 0.0f, 20.0f, 50);
-		public float _phyTimeAccu = 0;
-		public Dictionary<string, Entity> _flippers = new Dictionary<string, Entity>();
-		public int _ballCounter = 0;
-		public bool _enableManualBallRoller = false;
+        public FPSHelper _fps = new FPSHelper(true, 0, 100, "n1");
+        public FPSHelper _physicsTicks = new FPSHelper(true, 0, 1500, "n0", 300);
+        public ChartFloat _physicsTimes = new ChartFloat(100, 0.0f, 20.0f, 50);
+        public float _phyTimeAccu = 0;
+        internal class FlipperDebugData
+        {
+            public List<float> onAngles = new List<float>();
+            public List<float> offAngles = new List<float>();
+            public bool solenoid = false;            
+            public int onDuration = 0;
+            public int offDuration = 0;
+            public int duration = 0;
+        }
 
-		private Player _player = null;
-		public Player player { 
-			get { 
-				if (_player == null)
+        public Dictionary<string, Entity> _flippers = new Dictionary<string, Entity>();
+        public Dictionary<Entity, int> _flipperToIdx = new Dictionary<Entity, int>();
+        public List<FlipperDebugData> _flippersDebugData = new List<FlipperDebugData>();
+
+        public int _ballCounter = 0;
+        public bool _enableManualBallRoller = false;
+
+        private Player _player = null;
+        public Player player
+        {
+            get
+            {
+                if (_player == null)
                 {
-					var players = GameObject.FindObjectsOfType<Player>();
-					_player = players?[0];
-				}
-				return _player;
-			} }
-		
-		private void ProcessDataOncePerFrame()
+                    var players = GameObject.FindObjectsOfType<Player>();
+                    _player = players?[0];
+                }
+                return _player;
+            }
+        }
+
+        private void ProcessDataOncePerFrame()
         {
-			_fps.Tick();
-			_physicsTimes.Add(_phyTimeAccu);
-			_phyTimeAccu = 0.0f;
-		}
+            _fps.Tick();
+            _physicsTimes.Add(_phyTimeAccu);
+            _phyTimeAccu = 0.0f;
+        }
 
-		public bool Draw()
+        public bool Draw()
         {
-			ProcessDataOncePerFrame();
+            ProcessDataOncePerFrame();
 
-			if (showOverlayWindow)
-				debugOverlay.Draw(this);
+            if (showOverlayWindow)
+                debugOverlay.Draw(this);
 
-			if (showDemoWindow)
-				ImGui.ShowDemoWindow(ref showDemoWindow);
+            if (showDemoWindow)
+                ImGui.ShowDemoWindow(ref showDemoWindow);
 
-			if (showDebugWindow)
-			{
-				OnDebug();
-			}
+            if (showDebugWindow)
+            {
+                OnDebug();
+            }
 
-			return showDebugWindow;
-		}
+            return showDebugWindow;
+        }
 
-		void _OnDebugFlippers()
-		{
-			if (ImGui.TreeNode("Flippers"))
-			{
-				//ImGui_SliderFloat("Acceleration", ref flipperAcc, 0.1f, 3.0f);
-				//ImGui_SliderFloat("Mass (log10)", ref flipperMass, -1.0f, 8.0f);
-				//ImGui_SliderFloat("Off Scale", ref flipperOffScale, 0.01f, 1.0f);
-				//ImGui_SliderFloat("On Near End Scale", ref flipperOnNearEndScale, 0.01f, 1.0f);
-				//ImGui_SliderFloat("Num of degree near end", ref flipperNumOfDegreeNearEnd, 0.1f, 10.0f);
-				ImGui.Separator();
-				//ImGui.SliderInt("Num frames on chart", ref numFramesOnChart, 10, 500);
-				//				player.physicsEngine?.OnDebugDraw();
-				ImGui.TreePop();
-				ImGui.Separator();
-			}
-		}
+        void _DrawFlipperState(string name, Entity entity, ref FlipperDebugData fdd)
+        {
+            if (ImGui.TreeNode(name))
+            {
+                FlipperState fs;
+                if (DPProxy.physicsEngine.GetFlipperState(entity, out fs))
+                {                    
+                    if (fs.solenoid)
+                    {
+                        ImGui.TextColored(new System.Numerics.Vector4(0.0f, 1.0f, 0.0f, 1.0f), "Angle: " + fs.angle.ToString("n1"));
+                    }
+                    else
+                    {
+                        ImGui.TextColored(new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Angle: " + fs.angle.ToString("n1"));
+                    }
+                    
+                    ImGui.PushItemWidth(-1);
+                    _DrawFlipperAngles(fdd.onAngles.ToArray(), true, 10 * math.PI / 180.0f, "Rotation speed, On after " + fdd.offDuration + " ms" );
+                    _DrawFlipperAngles(fdd.offAngles.ToArray(), true, 10 * math.PI / 180.0f, "Rotation speed, Off after " + fdd.onDuration + " ms");
+                    _DrawFlipperAngles(fdd.onAngles.ToArray(), false, 1, "Angle, On after " + fdd.offDuration + " ms");
+                    _DrawFlipperAngles(fdd.offAngles.ToArray(), false, 1, "Angle, Off after " + fdd.onDuration + " ms");
+                    ImGui.PopItemWidth();
+                }
+                ImGui.TreePop();
+                ImGui.Separator();
+            }
+        }
 
-		private void OnDebug()
-		{
-			ImGui.SetNextWindowPos(new System.Numerics.Vector2(30, 20), ImGuiCond.FirstUseEver);
-			ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, 100), ImGuiCond.FirstUseEver);
+        void _OnDebugFlippers()
+        {
+            if (ImGui.TreeNode("Flippers"))
+            {
+                //ImGui_SliderFloat("Acceleration", ref flipperAcc, 0.1f, 3.0f);
+                //ImGui_SliderFloat("Mass (log10)", ref flipperMass, -1.0f, 8.0f);
+                //ImGui_SliderFloat("Off Scale", ref flipperOffScale, 0.01f, 1.0f);
+                //ImGui_SliderFloat("On Near End Scale", ref flipperOnNearEndScale, 0.01f, 1.0f);
+                //ImGui_SliderFloat("Num of degree near end", ref flipperNumOfDegreeNearEnd, 0.1f, 10.0f);
+                ImGui.Separator();
+                var allFdds = _flippersDebugData.ToArray();
+                foreach (var entry in _flippers)
+                {
+                    int fidx = _flipperToIdx[entry.Value];                    
+                    _DrawFlipperState(entry.Key, entry.Value, ref allFdds[fidx]);
 
-			ImGui.Begin("Debug");
-			ImGui.Text("Balls on table: " + _ballCounter.ToString("n0"));
-			ImGui.Checkbox("ManualBallRoller", ref _enableManualBallRoller);
-			if (_enableManualBallRoller && Input.GetMouseButton(0))
-				ManualBallRoller();
+                }
+                //ImGui.SliderInt("Num frames on chart", ref numFramesOnChart, 10, 500);
+                //				player.physicsEngine?.OnDebugDraw();
+                ImGui.TreePop();
+                ImGui.Separator();
+            }
+        }
 
-			_OnDebugFlippers();
+        private void OnDebug()
+        {
+            ImGui.SetNextWindowPos(new System.Numerics.Vector2(30, 20), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, 100), ImGuiCond.FirstUseEver);
 
-			if (ImGui.Button("Add Ball"))
-			{
-				player?.CreateBall(new DebugBallCreator());
-				++_ballCounter;
+            ImGui.Begin("Debug");
+            ImGui.Text("Balls on table: " + _ballCounter.ToString("n0"));
+            ImGui.Checkbox("ManualBallRoller", ref _enableManualBallRoller);
+            if (_enableManualBallRoller && Input.GetMouseButton(0))
+                ManualBallRoller();
 
-			}
+            _OnDebugFlippers();
+
+            if (ImGui.Button("Add Ball"))
+            {
+                player?.CreateBall(new DebugBallCreator());
+            }
 
 #if UNITY_EDITOR
 			if (ImGui.Button("Add Ball & Pause"))
 			{
 				player?.CreateBall(new DebugBallCreator());
-				++_ballCounter;
 				EditorApplication.isPaused = true;
 			}
 #endif
-			if (ImGui.Button("Exit"))
-			{
-				Application.Quit();
-			}
-		}
-
-		Camera camera = null;
-
-		private void ManualBallRoller()
-		{
-			if (camera == null)
-			{
-				camera = GameObject.FindObjectOfType<Camera>();
-			}
-
-			Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-			const float epsilon = 0.0001f;
-			float dist = math.abs(ray.direction.y) > epsilon ? ray.origin.y / ray.direction.y : 0.0f;
-			if (dist < epsilon)
-			{
-				var p = ray.origin - ray.direction * dist;
-				//player.physicsEngine?.ManualBallRoller(p);
-			}
-		}
-
-		// ================================================================ IDebugUI ===
-		public void OnRegisterFlipper(Entity entity, string name)
-        {
-			_flippers[name] = entity;
+            if (ImGui.Button("Exit"))
+            {
+                Application.Quit();
+            }
         }
 
-		public void OnPhysicsUpdate()
+        Camera camera = null;
+
+        private void ManualBallRoller()
         {
-			_physicsTicks.Tick();
-		}
+            if (camera == null)
+            {
+                camera = GameObject.FindObjectOfType<Camera>();
+            }
 
-		public void PhysicsFrameProcessingTime(float t)
+            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
+            const float epsilon = 0.0001f;
+            float dist = math.abs(ray.direction.y) > epsilon ? ray.origin.y / ray.direction.y : 0.0f;
+            if (dist < epsilon)
+            {
+                var p = ray.origin - ray.direction * dist;
+                //player.physicsEngine?.ManualBallRoller(p);
+            }
+        }
+
+        // ================================================================ IDebugUI ===
+        public void OnRegisterFlipper(Entity entity, string name)
         {
-			_phyTimeAccu += t;
-		}
+            _flippers[name] = entity;
+            _flipperToIdx[entity] = _flippersDebugData.Count;
+            _flippersDebugData.Add(new FlipperDebugData());
+        }
 
-		// ================================================================== Helpers ===
-		void ImGui_SliderFloat(string label, ref float val, float min, float max)
-		{
-			if (!ImGui.SliderFloat(label, ref val, min, max))
-				val = float.MaxValue;
+        public void OnPhysicsUpdate(int numSteps, float processingTime)
+        {
+            _physicsTicks.Tick(numSteps);
+            _phyTimeAccu += processingTime;
+            var _allFdd = _flippersDebugData.ToArray();
 
-		}
+            // read flipper states and create charts
+            foreach (var entity in _flippers.Values)
+            {
+                FlipperState fs;
+                ref FlipperDebugData fdd = ref _allFdd[_flipperToIdx[entity]];
 
-	}
+                if (DPProxy.physicsEngine.GetFlipperState(entity, out fs))
+                {
+                    if (fs.solenoid)
+                    {
+                        if (fdd.solenoid != fs.solenoid)
+                        {
+                            fdd.onAngles.Clear();
+                            fdd.offDuration = fdd.duration;
+                            fdd.duration = 0;
+                        }
+
+                        if (fdd.onAngles.Count < _MaxSolenoidAnglesDataLength)
+                            fdd.onAngles.Add(fs.angle);
+                    }
+                    else
+                    {
+                        if (fdd.solenoid != fs.solenoid)
+                        {
+                            fdd.offAngles.Clear();
+                            fdd.onDuration = fdd.duration;
+                            fdd.duration = 0;
+                        }
+
+                        if (fdd.offAngles.Count < _MaxSolenoidAnglesDataLength)
+                            fdd.offAngles.Add(fs.angle);
+                    }
+
+                    fdd.solenoid = fs.solenoid;
+                    ++fdd.duration;
+                }
+            }
+        }
+
+        public void OnCreateBall(Entity entity)
+        {
+            ++_ballCounter;
+        }
+
+        // ================================================================== Helpers ===
+        void ImGui_SliderFloat(string label, ref float val, float min, float max)
+        {
+            if (!ImGui.SliderFloat(label, ref val, min, max))
+                val = float.MaxValue;
+
+        }
+
+        private void _DrawFlipperAngles(float[] arr, bool drawSpeed, float scale, string overlay_text = "")
+        {
+            if (arr.Length < 3)
+                arr = new float[3] { 0, 0, 0 };
+
+            if (drawSpeed)
+            {
+                float[] speed = new float[arr.Length - 1];
+                for (int i = 0; i < speed.Length; ++i)
+                    speed[i] = (arr[i + 1] - arr[i]) * scale;
+                arr = speed;
+            }
+            float scale_min = 3.402823466e+38F;
+            float scale_max = 3.402823466e+38F;
+            int len = math.min(numFramesOnChart, arr.Length);
+            ImGui.PlotLines("", ref arr[0], len, 0, overlay_text, scale_min, scale_max, new System.Numerics.Vector2(0, 50.0f));
+        }
+
+    }
 }
