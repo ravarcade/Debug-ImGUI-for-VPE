@@ -118,11 +118,11 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         {
             if (ImGui.TreeNode("Flippers"))
             {
-                //ImGui_SliderFloat("Acceleration", ref flipperAcc, 0.1f, 3.0f);
-                //ImGui_SliderFloat("Mass (log10)", ref flipperMass, -1.0f, 8.0f);
-                //ImGui_SliderFloat("Off Scale", ref flipperOffScale, 0.01f, 1.0f);
-                //ImGui_SliderFloat("On Near End Scale", ref flipperOnNearEndScale, 0.01f, 1.0f);
-                //ImGui_SliderFloat("Num of degree near end", ref flipperNumOfDegreeNearEnd, 0.1f, 10.0f);
+                ImGui_SliderFloat("Acceleration", Params.Physics_FlipperAcc, 0.1f, 3.0f);
+                ImGui_SliderFloat("Mass (log10)", Params.Physics_FlipperMass, -1.0f, 8.0f);
+                ImGui_SliderFloat("Off Scale", Params.Physics_FlipperOffScale, 0.01f, 1.0f);
+                ImGui_SliderFloat("On Near End Scale", Params.Physics_FlipperOnNearEndScale, 0.01f, 1.0f);
+                ImGui_SliderFloat("Num of degree near end", Params.Physics_FlipperNumOfDegreeNearEnd, 0.1f, 10.0f);
                 ImGui.Separator();
                 var allFdds = _flippersDebugData.ToArray();
                 foreach (var entry in _flippers)
@@ -184,7 +184,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             if (dist < epsilon)
             {
                 var p = ray.origin - ray.direction * dist;
-                //player.physicsEngine?.ManualBallRoller(p);
+                DPProxy.physicsEngine?.ManualBallRoller(Entity.Null, p);
             }
         }
 
@@ -247,11 +247,16 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         }
 
         // ================================================================== Helpers ===
-        void ImGui_SliderFloat(string label, ref float val, float min, float max)
+        void ImGui_SliderFloat(string label, Params param, float min, float max)
         {
-            if (!ImGui.SliderFloat(label, ref val, min, max))
-                val = float.MaxValue;
+            if (DPProxy.physicsEngine == null)
+                return;
 
+            float val = DPProxy.physicsEngine.GetFloat(param);
+            if (ImGui.SliderFloat(label, ref val, min, max))
+            {
+                DPProxy.physicsEngine.SetFloat(param, val);
+            }
         }
 
         private void _DrawFlipperAngles(float[] arr, bool drawSpeed, float scale, string overlay_text = "")

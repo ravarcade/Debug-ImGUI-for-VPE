@@ -47,26 +47,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 			StartCoroutine("CallPluginAtEndOfFrames");
 		}
 
-		//float SyncParam(ref float param, float currentValue)
-		//{
-		//	if (param == float.MaxValue)
-		//		param = currentValue;
-
-		//	return param;
-		//}
-
-		//float GetUI_Float(int idx, float currentValue) 
-		//{			
-		//	if (idx == 0) return SyncParam(ref flipperAcc, currentValue);
-		//	if (idx == 1) return SyncParam(ref flipperMass, currentValue);
-		//	if (idx == 2) return SyncParam(ref flipperOffScale, currentValue);
-		//	if (idx == 3) return SyncParam(ref flipperOnNearEndScale, currentValue);
-		//	if (idx == 4) return SyncParam(ref flipperNumOfDegreeNearEnd, currentValue);
-
-		//	return 0;  
-		//}
-		
-		private WaitForEndOfFrame frameWait = new WaitForEndOfFrame();
+        private WaitForEndOfFrame frameWait = new WaitForEndOfFrame();
 
 		private IEnumerator CallPluginAtEndOfFrames()
 		{
@@ -96,13 +77,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 		// ============================================================
 
 		DebugUIClient debugUI = null;
-
-		//float flipperAcc = float.MaxValue;
-		//float flipperOffScale = float.MaxValue;
-		//float flipperOnNearEndScale = float.MaxValue;
-		//float flipperNumOfDegreeNearEnd = float.MaxValue;
-		//float flipperMass = float.MaxValue;
-		
+	
 		private void SubmitUI()
 		{
 			// here we create main debug window
