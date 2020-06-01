@@ -183,8 +183,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             float dist = math.abs(ray.direction.y) > epsilon ? ray.origin.y / ray.direction.y : 0.0f;
             if (dist < epsilon)
             {
-                var p = ray.origin - ray.direction * dist;
-                DPProxy.physicsEngine?.ManualBallRoller(Entity.Null, p);
+                var pointOnPlayfieldSurface = ray.origin - ray.direction * dist;
+                DPProxy.physicsEngine?.ManualBallRoller(_lastCreatedBallEntityForManualBallRoller, pointOnPlayfieldSurface);
             }
         }
 
@@ -241,8 +241,12 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             }
         }
 
+        Entity _lastCreatedBallEntityForManualBallRoller = Entity.Null;
         public void OnCreateBall(Entity entity)
         {
+            if (entity == Entity.Null || entity.Index < 0) // not valid entity!
+                return; 
+            _lastCreatedBallEntityForManualBallRoller = entity;
             ++_ballCounter;
         }
 
