@@ -2,12 +2,13 @@
 using System.Runtime.InteropServices;
 using UnityEngine;
 using ImGuiNET;
+using Unity.Entities;
 using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.DebugUI;
+using VisualPinball.Unity.VPT.Table;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
-    using Tools;
-
     [AddComponentMenu("Visual Pinball/Debug GUI")]
 	[DisallowMultipleComponent]
 	public class DebugGuiHook : MonoBehaviour
@@ -34,11 +35,6 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 		private void Awake()
 		{
 			_controller = new ImGuiController();
-			if (base.enabled)
-			{
-				debugUI = new DebugUIClient();
-				DPProxy.debugUI = debugUI; // register IDebugUI
-			}
 		}
 
 		private void Start()
@@ -76,8 +72,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
 		// ============================================================
 
-		DebugUIClient debugUI = null;
-	
+		public DebugUIClient debugUI;
+
 		private void SubmitUI()
 		{
 			// here we create main debug window

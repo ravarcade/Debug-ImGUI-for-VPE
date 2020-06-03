@@ -4,7 +4,7 @@ using ImGuiNET;
 namespace VisualPinball.Engine.Unity.ImgGUI.Tools
 {
 
-    internal class ChartFloat
+    public class ChartFloat
     {
         float[] _data;
         int _idx;
@@ -132,7 +132,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         public T back {  get { return _buf[_tail]; } }
     }
 
-    struct FPSHelper
+    public struct FPSHelper
     {
         private bool _drawChart;
         private string _precision;

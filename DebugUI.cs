@@ -1,21 +1,23 @@
 using System.Collections.Generic;
-using UnityEngine;
 using ImGuiNET;
-
 using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.DebugAndPhysicsComunicationProxy;
+using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Unity.ImgGUI.Tools;
-using Player = VisualPinball.Unity.Game.Player;
-
+using VisualPinball.Unity.Game;
+using VisualPinball.Unity.Physics.DebugUI;
+using VisualPinball.Unity.Physics.Engine;
+using VisualPinball.Unity.VPT.Table;
+using Vector2 = System.Numerics.Vector2;
+using Vector4 = System.Numerics.Vector4;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
-    internal class DebugUIClient : IDebugUI
+    public class DebugUIClient : IDebugUINew
     {
         const int _MaxSolenoidAnglesDataLength = 500;
         public int numFramesOnChart = 200;
@@ -30,7 +32,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public FPSHelper _physicsTicks = new FPSHelper(true, 0, 1500, "n0", 300);
         public ChartFloat _physicsTimes = new ChartFloat(100, 0.0f, 20.0f, 50);
         public float _phyTimeAccu = 0;
-        internal class FlipperDebugData
+        public class FlipperDebugData
         {
             public List<float> onAngles = new List<float>();
             public List<float> offAngles = new List<float>();
@@ -41,6 +43,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         }
 
         public Dictionary<string, Entity> _flippers = new Dictionary<string, Entity>();
+        public Dictionary<Entity, string> _flipperNames = new Dictionary<Entity, string>();
         public Dictionary<Entity, int> _flipperToIdx = new Dictionary<Entity, int>();
         public List<FlipperDebugData> _flippersDebugData = new List<FlipperDebugData>();
 
@@ -59,6 +62,18 @@ namespace VisualPinball.Engine.Unity.ImgGUI
                 }
                 return _player;
             }
+        }
+
+        public string Name => "ImgGUI";
+
+        public void Init(TableBehavior tableBehavior)
+        {
+            // add component if not already added in editor
+            var guiHook = tableBehavior.gameObject.GetComponent<DebugGuiHook>();
+            if (guiHook == null) {
+                guiHook = tableBehavior.gameObject.AddComponent<DebugGuiHook>();
+            }
+            guiHook.debugUI = this;
         }
 
         private void ProcessDataOncePerFrame()
@@ -86,50 +101,50 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             return showDebugWindow;
         }
 
-        void _DrawFlipperState(string name, Entity entity, ref FlipperDebugData fdd)
+        void _DrawFlipperState(string name, DebugFlipperState fs, ref FlipperDebugData fdd)
         {
             if (ImGui.TreeNode(name))
             {
-                FlipperState fs;
-                if (DPProxy.physicsEngine.GetFlipperState(entity, out fs))
-                {                    
-                    if (fs.solenoid)
-                    {
-                        ImGui.TextColored(new System.Numerics.Vector4(0.0f, 1.0f, 0.0f, 1.0f), "Angle: " + fs.angle.ToString("n1"));
-                    }
-                    else
-                    {
-                        ImGui.TextColored(new System.Numerics.Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Angle: " + fs.angle.ToString("n1"));
-                    }
-                    
-                    ImGui.PushItemWidth(-1);
-                    _DrawFlipperAngles(fdd.onAngles.ToArray(), true, 10 * math.PI / 180.0f, "Rotation speed, On after " + fdd.offDuration + " ms" );
-                    _DrawFlipperAngles(fdd.offAngles.ToArray(), true, 10 * math.PI / 180.0f, "Rotation speed, Off after " + fdd.onDuration + " ms");
-                    _DrawFlipperAngles(fdd.onAngles.ToArray(), false, 1, "Angle, On after " + fdd.offDuration + " ms");
-                    _DrawFlipperAngles(fdd.offAngles.ToArray(), false, 1, "Angle, Off after " + fdd.onDuration + " ms");
-                    ImGui.PopItemWidth();
+                if (fs.Solenoid)
+                {
+                    ImGui.TextColored(new Vector4(0.0f, 1.0f, 0.0f, 1.0f), "Angle: " + fs.Angle.ToString("n1"));
                 }
-                ImGui.TreePop();
-                ImGui.Separator();
+                else
+                {
+                    ImGui.TextColored(new Vector4(1.0f, 0.0f, 0.0f, 1.0f), "Angle: " + fs.Angle.ToString("n1"));
+                }
+
+                ImGui.PushItemWidth(-1);
+                _DrawFlipperAngles(fdd.onAngles.ToArray(), true, 10 * math.PI / 180.0f, "Rotation speed, On after " + fdd.offDuration + " ms" );
+                _DrawFlipperAngles(fdd.offAngles.ToArray(), true, 10 * math.PI / 180.0f, "Rotation speed, Off after " + fdd.onDuration + " ms");
+                _DrawFlipperAngles(fdd.onAngles.ToArray(), false, 1, "Angle, On after " + fdd.offDuration + " ms");
+                _DrawFlipperAngles(fdd.offAngles.ToArray(), false, 1, "Angle, Off after " + fdd.onDuration + " ms");
+                ImGui.PopItemWidth();
             }
+            ImGui.TreePop();
+            ImGui.Separator();
         }
 
         void _OnDebugFlippers()
         {
             if (ImGui.TreeNode("Flippers"))
             {
-                ImGui_SliderFloat("Acceleration", Params.Physics_FlipperAcc, 0.1f, 3.0f);
-                ImGui_SliderFloat("Mass (log10)", Params.Physics_FlipperMass, -1.0f, 8.0f);
-                ImGui_SliderFloat("Off Scale", Params.Physics_FlipperOffScale, 0.01f, 1.0f);
-                ImGui_SliderFloat("On Near End Scale", Params.Physics_FlipperOnNearEndScale, 0.01f, 1.0f);
-                ImGui_SliderFloat("Num of degree near end", Params.Physics_FlipperNumOfDegreeNearEnd, 0.1f, 10.0f);
-                ImGui.Separator();
-                var allFdds = _flippersDebugData.ToArray();
-                foreach (var entry in _flippers)
-                {
-                    int fidx = _flipperToIdx[entry.Value];                    
-                    _DrawFlipperState(entry.Key, entry.Value, ref allFdds[fidx]);
+                var sliders = EngineProvider<IPhysicsEngineNew>.Get().FlipperGetDebugSliders();
+                foreach (var slider in sliders) {
+                    ImGui_SliderFloat(slider.Label, slider.Param, slider.MinValue, slider.MaxValue);
+                }
 
+                if (sliders.Length > 0)
+                {
+                    ImGui.Separator();
+                }
+
+                var allFdds = _flippersDebugData.ToArray();
+                var allFss = EngineProvider<IPhysicsEngineNew>.Get().FlipperGetDebugStates();
+                foreach (var fs in allFss) {
+                    int fidx = _flipperToIdx[fs.Entity];
+                    var name = _flipperNames[fs.Entity];
+                    _DrawFlipperState(name, fs, ref allFdds[fidx]);
                 }
                 //ImGui.SliderInt("Num frames on chart", ref numFramesOnChart, 10, 500);
                 //				player.physicsEngine?.OnDebugDraw();
@@ -140,8 +155,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
         private void OnDebug()
         {
-            ImGui.SetNextWindowPos(new System.Numerics.Vector2(30, 20), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSize(new System.Numerics.Vector2(350, 100), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowPos(new Vector2(30, 20), ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new Vector2(350, 100), ImGuiCond.FirstUseEver);
 
             ImGui.Begin("Debug");
             ImGui.Text("Balls on table: " + _ballCounter.ToString("n0"));
@@ -184,7 +199,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             if (dist < epsilon)
             {
                 var pointOnPlayfieldSurface = ray.origin - ray.direction * dist;
-                DPProxy.physicsEngine?.ManualBallRoller(_lastCreatedBallEntityForManualBallRoller, pointOnPlayfieldSurface);
+                EngineProvider<IPhysicsEngineNew>.Get().BallManualRoll(_lastCreatedBallEntityForManualBallRoller, pointOnPlayfieldSurface);
             }
         }
 
@@ -192,6 +207,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public void OnRegisterFlipper(Entity entity, string name)
         {
             _flippers[name] = entity;
+            _flipperNames[entity] = name;
             _flipperToIdx[entity] = _flippersDebugData.Count;
             _flippersDebugData.Add(new FlipperDebugData());
         }
@@ -203,41 +219,37 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             var _allFdd = _flippersDebugData.ToArray();
 
             // read flipper states and create charts
-            foreach (var entity in _flippers.Values)
-            {
-                FlipperState fs;
-                ref FlipperDebugData fdd = ref _allFdd[_flipperToIdx[entity]];
+            var flippers = EngineProvider<IPhysicsEngineNew>.Get().FlipperGetDebugStates();
+            foreach (var fs in flippers) {
+                ref FlipperDebugData fdd = ref _allFdd[_flipperToIdx[fs.Entity]];
 
-                if (DPProxy.physicsEngine.GetFlipperState(entity, out fs))
+                if (fs.Solenoid)
                 {
-                    if (fs.solenoid)
+                    if (fdd.solenoid != fs.Solenoid)
                     {
-                        if (fdd.solenoid != fs.solenoid)
-                        {
-                            fdd.onAngles.Clear();
-                            fdd.offDuration = fdd.duration;
-                            fdd.duration = 0;
-                        }
-
-                        if (fdd.onAngles.Count < _MaxSolenoidAnglesDataLength)
-                            fdd.onAngles.Add(fs.angle);
-                    }
-                    else
-                    {
-                        if (fdd.solenoid != fs.solenoid)
-                        {
-                            fdd.offAngles.Clear();
-                            fdd.onDuration = fdd.duration;
-                            fdd.duration = 0;
-                        }
-
-                        if (fdd.offAngles.Count < _MaxSolenoidAnglesDataLength)
-                            fdd.offAngles.Add(fs.angle);
+                        fdd.onAngles.Clear();
+                        fdd.offDuration = fdd.duration;
+                        fdd.duration = 0;
                     }
 
-                    fdd.solenoid = fs.solenoid;
-                    ++fdd.duration;
+                    if (fdd.onAngles.Count < _MaxSolenoidAnglesDataLength)
+                        fdd.onAngles.Add(fs.Angle);
                 }
+                else
+                {
+                    if (fdd.solenoid != fs.Solenoid)
+                    {
+                        fdd.offAngles.Clear();
+                        fdd.onDuration = fdd.duration;
+                        fdd.duration = 0;
+                    }
+
+                    if (fdd.offAngles.Count < _MaxSolenoidAnglesDataLength)
+                        fdd.offAngles.Add(fs.Angle);
+                }
+
+                fdd.solenoid = fs.Solenoid;
+                ++fdd.duration;
             }
         }
 
@@ -251,15 +263,13 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         }
 
         // ================================================================== Helpers ===
-        void ImGui_SliderFloat(string label, Params param, float min, float max)
+        void ImGui_SliderFloat(string label, DebugFlipperSliderParam param, float min, float max)
         {
-            if (DPProxy.physicsEngine == null)
-                return;
-
-            float val = DPProxy.physicsEngine.GetFloat(param);
+            var engine = EngineProvider<IPhysicsEngineNew>.Get();
+            float val = engine.GetFlipperDebugValue(param);
             if (ImGui.SliderFloat(label, ref val, min, max))
             {
-                DPProxy.physicsEngine.SetFloat(param, val);
+                engine.SetFlipperDebugValue(param, val);
             }
         }
 
