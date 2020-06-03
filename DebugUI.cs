@@ -17,7 +17,7 @@ using UnityEditor;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
-    public class DebugUIClient : IDebugUINew
+    public class DebugUIClient : IDebugUI
     {
         const int _MaxSolenoidAnglesDataLength = 500;
         public int numFramesOnChart = 200;
@@ -36,7 +36,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         {
             public List<float> onAngles = new List<float>();
             public List<float> offAngles = new List<float>();
-            public bool solenoid = false;            
+            public bool solenoid = false;
             public int onDuration = 0;
             public int offDuration = 0;
             public int duration = 0;
@@ -129,7 +129,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         {
             if (ImGui.TreeNode("Flippers"))
             {
-                var sliders = EngineProvider<IPhysicsEngineNew>.Get().FlipperGetDebugSliders();
+                var sliders = EngineProvider<IPhysicsEngine>.Get().FlipperGetDebugSliders();
                 foreach (var slider in sliders) {
                     ImGui_SliderFloat(slider.Label, slider.Param, slider.MinValue, slider.MaxValue);
                 }
@@ -140,7 +140,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
                 }
 
                 var allFdds = _flippersDebugData.ToArray();
-                var allFss = EngineProvider<IPhysicsEngineNew>.Get().FlipperGetDebugStates();
+                var allFss = EngineProvider<IPhysicsEngine>.Get().FlipperGetDebugStates();
                 foreach (var fs in allFss) {
                     int fidx = _flipperToIdx[fs.Entity];
                     var name = _flipperNames[fs.Entity];
@@ -199,7 +199,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             if (dist < epsilon)
             {
                 var pointOnPlayfieldSurface = ray.origin - ray.direction * dist;
-                EngineProvider<IPhysicsEngineNew>.Get().BallManualRoll(_lastCreatedBallEntityForManualBallRoller, pointOnPlayfieldSurface);
+                EngineProvider<IPhysicsEngine>.Get().BallManualRoll(_lastCreatedBallEntityForManualBallRoller, pointOnPlayfieldSurface);
             }
         }
 
@@ -219,7 +219,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             var _allFdd = _flippersDebugData.ToArray();
 
             // read flipper states and create charts
-            var flippers = EngineProvider<IPhysicsEngineNew>.Get().FlipperGetDebugStates();
+            var flippers = EngineProvider<IPhysicsEngine>.Get().FlipperGetDebugStates();
             foreach (var fs in flippers) {
                 ref FlipperDebugData fdd = ref _allFdd[_flipperToIdx[fs.Entity]];
 
@@ -257,7 +257,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public void OnCreateBall(Entity entity)
         {
             if (entity == Entity.Null || entity.Index < 0) // not valid entity!
-                return; 
+                return;
             _lastCreatedBallEntityForManualBallRoller = entity;
             ++_ballCounter;
         }
@@ -265,7 +265,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         // ================================================================== Helpers ===
         void ImGui_SliderFloat(string label, DebugFlipperSliderParam param, float min, float max)
         {
-            var engine = EngineProvider<IPhysicsEngineNew>.Get();
+            var engine = EngineProvider<IPhysicsEngine>.Get();
             float val = engine.GetFlipperDebugValue(param);
             if (ImGui.SliderFloat(label, ref val, min, max))
             {
