@@ -1,4 +1,7 @@
 using System.Diagnostics;
+using VisualPinball.Engine.Common;
+using VisualPinball.Unity.Physics.DebugUI;
+using VisualPinball.Unity.Physics.Engine;
 using ImGuiNET;
 
 namespace VisualPinball.Engine.Unity.ImgGUI.Tools
@@ -7,22 +10,22 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
     public class ChartFloat
     {
         float[] _data;
-        int _idx;
         int _size;
-        float _max;
+        int _idx;
         float _min;
+        float _max;
         int _height;
         bool _checkMax;
         float _treshold;
-        public float val { get
-            {
-                return _data[_idx];
-            } }
+        public float val 
+        { 
+            get { return _data[_idx]; } 
+        }
 
         public ChartFloat(int size, float min, float max, int height)
         {
-            _size = size;
             _data = new float[size * 2];
+            _size = size;
             _idx = 0;
             _min = min;
             _max = max;
@@ -50,7 +53,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
                 _min = val;
         }
 
-        public void Draw(string label, string overlay_text, string precision)
+        public void Draw(string label, string overlay_text, string precision = null)
         {
             if (_checkMax)
             {
@@ -71,10 +74,6 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             ImGui.PlotLines(label, ref _data[_idx + 1], _size, 0, overlay_text, _min, _max, new System.Numerics.Vector2(0, _height));
         }
 
-        public void Draw(string label, string overlay_text)
-        {
-            Draw(label, overlay_text, null);
-        }
     };
 
     struct QueueBuffer<T>
@@ -82,65 +81,67 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         T[] _buf;
         int _head;
         int _tail;
-        int _used;
-        int _bufSize;
+        int _size;
+        int _reserved;
 
-        public int size { get => _used; }
+        public int size { get => _size; }
 
         public QueueBuffer(int size)
         {
             _buf = new T[size];
             _head = 0;
             _tail = size-1;
-            _used = 0;
-            _bufSize = size;
+            _size = 0;
+            _reserved = size;
         }
 
         public void Push(T val)
         {            
             ++_tail;
-            if (_tail >= _bufSize)
+            if (_tail >= _reserved)
                 _tail = 0;
 
             _buf[_tail] = val;
             
             // check if we overwrited 
-            if (_used < _bufSize)
+            if (_size < _reserved)
             {
-                ++_used;
+                ++_size;
             } else
             {
                 ++_head;
-                if (_head >= _bufSize)
+                if (_head >= _reserved)
                     _head = 0;
             }
         }
 
         public void Pop()
         {
-            if (_used > 0)
+            if (_size > 0)
             {
-                --_used;
+                --_size;
                 ++_head;
-                if (_head >= _bufSize)
+                if (_head >= _reserved)
                     _head = 0;
             }
         }
 
-        public bool isEmpty { get { return _used == 0; } }
+        public bool isEmpty { get { return _size == 0; } }
         public T front {  get { return _buf[_head]; } }
         public T back {  get { return _buf[_tail]; } }
     }
 
     public struct FPSHelper
     {
-        private bool _drawChart;
-        private string _precision;
-        private int _frames;
-        private float _val;
-        
-        private ChartFloat _chart;
-        private Stopwatch _watch;
+        const float _maxDataLifetime = 1.0f; // 1 second
+        bool _drawChart;
+        string _precision;
+        int _frames;
+        float _val;        
+        ChartFloat _chart;
+        Stopwatch _watch;
+        double _now { get => _watch.Elapsed.TotalSeconds; }
+
         internal struct TickData
         {
             public double time;
@@ -151,9 +152,9 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
                 frame = fr;
             }
         }
-        private QueueBuffer<TickData> _ticks;
 
-        private double _now { get => _watch.Elapsed.TotalSeconds; }
+        QueueBuffer<TickData> _ticks;
+
         public int count { get => _frames; }
 
         public FPSHelper(bool drawChart, float min, float max, string precision = "n0", int ticksBufSize = 60)
@@ -175,18 +176,9 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             _ticks.Push(new TickData(_now, _frames));
         }
 
-        private void _Update()
+        public void Add(float val)
         {
-            double now = _now;
-            while (_ticks.size > 2 && (now - 1.0) > _ticks.front.time) // remove older than 1 second values
-                _ticks.Pop();
-
-            if (_ticks.size >= 2)
-            {
-                _val = (float)((double)(_ticks.back.frame - _ticks.front.frame) / (_ticks.back.time - _ticks.front.time));
-                if (_drawChart)
-                    _chart.Add(_val);
-            }
+            _chart.Add(val);
         }
 
         public void Draw(string label)
@@ -201,5 +193,34 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
                 ImGui.Text(label + _val.ToString(_precision));
             }
         }
-    }    
+
+        private void _Update()
+        {
+            double now = _now;
+            while (_ticks.size > 2 && (now - _maxDataLifetime) > _ticks.front.time) // remove older than _maxDataLifetime second values
+                _ticks.Pop();
+
+            if (_ticks.size >= 2)
+            {
+                _val = (float)((double)(_ticks.back.frame - _ticks.front.frame) / (_ticks.back.time - _ticks.front.time));
+                if (_drawChart)
+                    _chart.Add(_val);
+            }
+        }
+    }
+
+
+    public static class ImGuiExt
+    {
+        static public void SliderFloat(string label, DebugFlipperSliderParam param, float min, float max)
+        {
+            var engine = EngineProvider<IPhysicsEngine>.Get();
+            float val = engine.GetFlipperDebugValue(param);
+            if (ImGui.SliderFloat(label, ref val, min, max))
+            {
+                engine.SetFlipperDebugValue(param, val);
+            }
+        }
+
+    }
 }

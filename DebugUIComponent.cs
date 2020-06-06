@@ -1,17 +1,13 @@
 ﻿using System.Collections;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using ImGuiNET;
-using Unity.Entities;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.VPT.Table;
+
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
-    [AddComponentMenu("Visual Pinball/Debug GUI")]
+    [AddComponentMenu("Visual Pinball/DebugUI ImGUI")]
 	[DisallowMultipleComponent]
-	public class DebugGuiHook : MonoBehaviour
+	public class DebugUIComponent : MonoBehaviour
 	{
 		[DllImport("UnityImGuiRenderer")]
 		private static extern System.IntPtr GetRenderEventFunc();
@@ -31,6 +27,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 		public static extern void OutputDebugString(string message);
 
 		private ImGuiController _controller;
+
+		public DebugUI debugUI = null;
 
 		private void Awake()
 		{
@@ -62,7 +60,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 		private void Update()
 		{
 			_controller.Update();
-			SubmitUI();
+			debugUI.OnDraw();
 		}
 
 		private static void DebugMethod(string message)
@@ -70,33 +68,10 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 			Debug.Log("UnityImGuiRenderer: " + message);
 		}
 
-		// ============================================================
-
-		public DebugUIClient debugUI;
-
-		private void SubmitUI()
-		{
-			// here we create main debug window
-			if (debugUI != null && debugUI.Draw())
-            {
-				foreach (var component in GetComponentsInChildren<IDebugImGUI>(true))
-				{
-					component.OnDebug();
-				}
-
-				ImGui.End();
-			}
-		}
-
 		[RuntimeInitializeOnLoadMethod]
 		public static void OnLoadSetup()
 		{
 		}		
 
-	}
-
-	public interface IDebugImGUI
-	{
-		void OnDebug();
 	}
 }

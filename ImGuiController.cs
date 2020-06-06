@@ -2,6 +2,8 @@
 using ImGuiNET;
 using UnityEngine;
 
+using DebugGuiHook = VisualPinball.Engine.Unity.ImgGUI.DebugUIComponent;
+
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
     public class ImGuiController
