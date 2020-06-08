@@ -1,14 +1,9 @@
-
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.Physics.Engine;
 using ImGuiNET;
-using UnityEngine;
-
-using Vector2 = System.Numerics.Vector2;
 using Vector4 = System.Numerics.Vector4;
-using Unity.Entities.UniversalDelegates;
-using UnityEditor.Profiling;
+
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {

@@ -1,17 +1,5 @@
-using System;
-using System.Collections.Generic;
-using ImGuiNET;
-using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Unity.ImgGUI.Tools;
-using VisualPinball.Unity.Game;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Engine;
-using VisualPinball.Unity.VPT.Table;
-using Vector2 = System.Numerics.Vector2;
-using Vector4 = System.Numerics.Vector4;
+
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {

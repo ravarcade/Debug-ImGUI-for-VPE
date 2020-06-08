@@ -171,6 +171,6 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             int len = math.min(_numFramesOnChart, arr.Length);
             ImGui.PlotLines("", ref arr[0], len, 0, overlay_text, scale_min, scale_max, new Vector2(0, 50.0f));
         }
-
     }
+
 }

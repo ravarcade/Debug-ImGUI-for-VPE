@@ -1,12 +1,9 @@
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Physics.Engine;
 using ImGuiNET;
-
-using Vector2 = System.Numerics.Vector2;
 
 #if UNITY_EDITOR
 using UnityEditor;

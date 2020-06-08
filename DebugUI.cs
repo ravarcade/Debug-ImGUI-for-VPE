@@ -2,8 +2,6 @@ using Unity.Entities;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.VPT.Table;
 using ImGuiNET;
-using UnityEngine;
-using Unity.Mathematics;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
@@ -20,7 +18,6 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         BallMonitor _balls = null;
         PerformanceMonitor _performance = new PerformanceMonitor();
         VPEUtilities _VPEUtilities;
-
 
         public FlipperMonitor Flippers { get => _flippers; }
         public BallMonitor Balls { get => _balls; }

@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using Unity.Mathematics;
 using VisualPinball.Unity.Game;

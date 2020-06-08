@@ -1,6 +1,5 @@
 using UnityEngine;
 using ImGuiNET;
-using Unity.Entities.UniversalDelegates;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {

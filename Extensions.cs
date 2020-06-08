@@ -1,7 +1,5 @@
+using System;
 using System.Diagnostics;
-using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Physics.DebugUI;
-using VisualPinball.Unity.Physics.Engine;
 using ImGuiNET;
 
 namespace VisualPinball.Engine.Unity.ImgGUI.Tools
@@ -17,6 +15,12 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         int _height;
         bool _checkMax;
         float _treshold;
+        bool _locked;
+        float[] _lockedData;
+        string _lockedOverlayText;
+        float _lockedMin;
+        float _lockedMax;
+
         public float val
         {
             get { return _data[_idx]; }
@@ -25,6 +29,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         public ChartFloat(int size, float min, float max, int height)
         {
             _data = new float[size * 2];
+            _lockedData = new float[size];
             _size = size;
             _idx = 0;
             _min = min;
@@ -32,6 +37,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             _height = height;
             _checkMax = false;
             _treshold = 0.5f;
+            _locked = false;
         }
 
         public void Add(float val)
@@ -55,6 +61,14 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
 
         public void Draw(string label, string overlay_text, string precision = null)
         {
+            bool _prevLocked = _locked;
+            if (_prevLocked)
+            {
+                ImGui.PlotLines(label, ref _lockedData[0], _size, 0, _lockedOverlayText, _lockedMin, _lockedMax, new System.Numerics.Vector2(0, _height));
+                _locked = ImGui.IsItemHovered();
+                return;
+            }
+
             if (_checkMax)
             {
                 _checkMax = false;
@@ -72,6 +86,15 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
                 overlay_text += val.ToString(precision);
 
             ImGui.PlotLines(label, ref _data[_idx + 1], _size, 0, overlay_text, _min, _max, new System.Numerics.Vector2(0, _height));
+            _locked = ImGui.IsItemHovered();
+
+            if (!_prevLocked && _locked)
+            {
+                Array.Copy(_data, _idx + 1, _lockedData, 0, _size);
+                _lockedOverlayText = overlay_text;
+                _lockedMin = _min;
+                _lockedMax = _max;
+            }
         }
 
     };
