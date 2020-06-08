@@ -17,9 +17,9 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         int _height;
         bool _checkMax;
         float _treshold;
-        public float val 
-        { 
-            get { return _data[_idx]; } 
+        public float val
+        {
+            get { return _data[_idx]; }
         }
 
         public ChartFloat(int size, float min, float max, int height)
@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
                 if (tmax < _max * _treshold)
                     _max = tmax;
             }
-            
+
             if (precision != null)
                 overlay_text += val.ToString(precision);
 
@@ -90,24 +90,25 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         {
             _buf = new T[size];
             _head = 0;
-            _tail = size-1;
+            _tail = size - 1;
             _size = 0;
             _reserved = size;
         }
 
         public void Push(T val)
-        {            
+        {
             ++_tail;
             if (_tail >= _reserved)
                 _tail = 0;
 
             _buf[_tail] = val;
-            
+
             // check if we overwrited 
             if (_size < _reserved)
             {
                 ++_size;
-            } else
+            }
+            else
             {
                 ++_head;
                 if (_head >= _reserved)
@@ -127,8 +128,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         }
 
         public bool isEmpty { get { return _size == 0; } }
-        public T front {  get { return _buf[_head]; } }
-        public T back {  get { return _buf[_tail]; } }
+        public T front { get { return _buf[_head]; } }
+        public T back { get { return _buf[_tail]; } }
     }
 
     public struct FPSHelper
@@ -137,7 +138,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         bool _drawChart;
         string _precision;
         int _frames;
-        float _val;        
+        float _val;
         ChartFloat _chart;
         Stopwatch _watch;
         double _now { get => _watch.Elapsed.TotalSeconds; }
@@ -167,7 +168,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             _chart = new ChartFloat(100, min, max, 50);
             _watch = new Stopwatch();
             _watch.Start();
-            
+
         }
 
         public void Tick(int numTicks = 1)
@@ -209,18 +210,4 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
         }
     }
 
-
-    public static class ImGuiExt
-    {
-        static public void SliderFloat(string label, DebugFlipperSliderParam param, float min, float max)
-        {
-            var engine = EngineProvider<IPhysicsEngine>.Get();
-            float val = engine.GetFlipperDebugValue(param);
-            if (ImGui.SliderFloat(label, ref val, min, max))
-            {
-                engine.SetFlipperDebugValue(param, val);
-            }
-        }
-
-    }
 }

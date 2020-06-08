@@ -4,17 +4,22 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Physics.Engine;
+using ImGuiNET;
 
+using Vector2 = System.Numerics.Vector2;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
     public class BallMonitor : IMonitor
     {
+        DebugUI _debugUI;
         List<Entity> _balls = new List<Entity>();
         Entity _lastCreatedBallEntityForManualBallRoller = Entity.Null;
-        Camera camera = null;
-
-        public int Counter {  get { return _balls.Count; } }
+        public int Counter { get { return _balls.Count; } }
 
         public void Register(Entity entity, string name)
         {
@@ -24,24 +29,46 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
         public void OnPhysicsUpdate(double physicClockMilliseconds, int numSteps, float processingTimeMilliseconds)
         {
-            
+
         }
 
         public void ManualBallRoller()
         {
-            if (camera == null)
-            {
-                camera = GameObject.FindObjectOfType<Camera>();
-            }
+            float3 p;
+            if (_debugUI.VPE.GetClickCoords(out p))
+                EngineProvider<IPhysicsEngine>.Get().BallManualRoll(_lastCreatedBallEntityForManualBallRoller, p);            
+        }
 
-            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-            const float epsilon = 0.0001f;
-            float dist = math.abs(ray.direction.y) > epsilon ? ray.origin.y / ray.direction.y : 0.0f;
-            if (dist < epsilon)
+        public BallMonitor(DebugUI debugUI)
+        {
+            _debugUI = debugUI;
+        }
+
+        // ==================================================================== Draw in Debug Window ===
+
+        public void OnDebugWindow(DebugWindow dw)
+        {
+            if (ImGui.TreeNode("BallMonitor", string.Format("Balls ({0})", Counter)))
             {
-                var pointOnPlayfieldSurface = ray.origin - ray.direction * dist;
-                EngineProvider<IPhysicsEngine>.Get().BallManualRoll(_lastCreatedBallEntityForManualBallRoller, pointOnPlayfieldSurface);
+                if (ImGui.Button("Add ball"))
+                {
+                    dw.VPE.CreateBall();
+                }
+
+#if UNITY_EDITOR
+                if (ImGuiExt.InlineButton("Add ball & Pause"))
+                {
+                    dw.VPE.CreateBall();
+                    EditorApplication.isPaused = true;
+                }
+#endif
+                if (ImGuiExt.InlineButton("Add ball in lane"))
+                {
+                    dw.VPE.CreateBall(900, 1200);
+                }
+                ImGui.TreePop();
             }
         }
     }
+    
 }

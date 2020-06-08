@@ -2,7 +2,8 @@ using Unity.Entities;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.VPT.Table;
 using ImGuiNET;
-
+using UnityEngine;
+using Unity.Mathematics;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
@@ -11,22 +12,23 @@ namespace VisualPinball.Engine.Unity.ImgGUI
     {
         public string Name => "ImgGUI";
 
-        FlipperMonitor _flippers = new FlipperMonitor();
-        BallMonitor _balls = new BallMonitor();
-        PerformanceMonitor _performance = new PerformanceMonitor();
-        VPEUtilities _VPEUtilities;
-
-        DebugOverlay _debugOverlay;
-        DebugWindow _debugWindow;
-
         public bool showOverlayWindow = true;
         public bool showDebugWindow = true;
         public bool showDemoWindow = false;
+
+        FlipperMonitor _flippers = new FlipperMonitor();
+        BallMonitor _balls = null;
+        PerformanceMonitor _performance = new PerformanceMonitor();
+        VPEUtilities _VPEUtilities;
+
 
         public FlipperMonitor Flippers { get => _flippers; }
         public BallMonitor Balls { get => _balls; }
         public PerformanceMonitor Performance { get => _performance; }
         public VPEUtilities VPE { get => _VPEUtilities; }
+
+        DebugOverlay _debugOverlay;
+        DebugWindow _debugWindow;
 
         // ==================================================================== IDebugUI ===
 
@@ -39,6 +41,10 @@ namespace VisualPinball.Engine.Unity.ImgGUI
                 debugUIComponent = tableBehavior.gameObject.AddComponent<DebugUIComponent>();
             }
             debugUIComponent.debugUI = this;
+            _balls = new BallMonitor(this);
+            _debugOverlay = new DebugOverlay(this);
+            _debugWindow = new DebugWindow(this);
+            _VPEUtilities = new VPEUtilities(this, tableBehavior);
         }
 
         public void OnPhysicsUpdate(double physicClockMilliseconds, int numSteps, float processingTimeMilliseconds)
@@ -59,13 +65,6 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         }
 
         // ==================================================================== DebugUI ===
-
-        public DebugUI()
-        {
-            _debugOverlay = new DebugOverlay(this);
-            _debugWindow = new DebugWindow(this);
-            _VPEUtilities = new VPEUtilities(this);
-        }
 
         public void OnDraw()
         {
