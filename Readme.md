@@ -10,7 +10,7 @@ Adds debug UI based on Dear ImGUI.
 
 - Debug window to monitor objects
 
-![](.Doc\Debug-Window.png)
+![](.Doc/Debug-Window.png)
 
 - Spawn ball at mouse cursor (**F6**)
 - Ball manual roll (**F7**)
