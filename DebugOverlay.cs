@@ -9,6 +9,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         DebugUI _debugUI;
         int _corner = 0;
         bool _enableManualBallRoller = false;
+        bool _showPerformanceCharts = true;
 
         public DebugOverlay(DebugUI debugUI)
         {
@@ -30,22 +31,38 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             {
                 var pm = _debugUI.Performance;
 
-                ImGui.PushItemWidth(-1);    // remove space saved for label
-                pm.Fps.Draw("FPS: ");
-                pm.PhysicsTicks.Draw("Physics: ");
-                pm.PhysicsTimes.Draw("", "Physics time: ", "n1");
-                ImGui.PopItemWidth();
+                if (_showPerformanceCharts)
+                {
+                    ImGui.PushItemWidth(-1);    // remove space saved for label
+                    pm.Fps.Draw("FPS: ");
+                    pm.PhysicsTicks.Draw("Physics: ");
+                    pm.PhysicsTimes.Draw("", "Physics time: ", "n1");
+                    ImGui.PopItemWidth();
+                }
+                else
+                {
+                    pm.Fps.Draw("FPS: ", _showPerformanceCharts);
+                }
 
-                if (ImGuiExt.Button("[F6]", "Press F6 to spawn ball at cursor"))
+                if (ImGuiExt.Button("F6", "Press F6 to spawn ball at cursor"))
                     _debugUI.VPE.CreateBall();
 
-                if (ImGuiExt.Button("[F7]", "Press F7 to enable manual ball roller", _enableManualBallRoller ? 0.35f : 0.0f))
+                if (ImGuiExt.Button("F7", "Press F7 to enable manual ball roller", _enableManualBallRoller ? 0.35f : 0.0f))
                     _enableManualBallRoller = !_enableManualBallRoller;
 
-                if (ImGui.IsMousePosValid())
-                    ImGui.Text("Mouse Position: (" + io.MousePos.X.ToString("n1") + ", " + io.MousePos.Y.ToString("n1") + ")");
-                else
-                    ImGui.Text("Mouse Position: <invalid>");
+                if (ImGuiExt.Button("F8", "Press F8 to show/hide Debug Window", _debugUI.showDebugWindow ? 0.35f : 0.0f))
+                    _debugUI.showDebugWindow = !_debugUI.showDebugWindow;
+
+                if (ImGuiExt.Button("F9", "Press F9 to show/hide Performance Charts", _showPerformanceCharts ? 0.35f : 0.0f))
+                    _showPerformanceCharts = !_showPerformanceCharts;
+
+                if (_showPerformanceCharts)
+                {
+                    if (ImGui.IsMousePosValid())
+                        ImGui.Text("Mouse Position: (" + io.MousePos.X.ToString("n1") + ", " + io.MousePos.Y.ToString("n1") + ")");
+                    else
+                        ImGui.Text("Mouse Position: <invalid>");
+                }
 
                 ImGui.Separator();
                 ImGui.Text("(right-click to change position)");
@@ -82,6 +99,12 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
             if (Input.GetKeyDown(KeyCode.F7))
                 _enableManualBallRoller = !_enableManualBallRoller;
+
+            if (Input.GetKeyDown(KeyCode.F8))
+                _debugUI.showDebugWindow = !_debugUI.showDebugWindow;
+
+            if (Input.GetKeyDown(KeyCode.F9))
+                _showPerformanceCharts = !_showPerformanceCharts;
 
             if (_enableManualBallRoller && Input.GetMouseButton(0))
                 _debugUI.Balls.ManualBallRoller();

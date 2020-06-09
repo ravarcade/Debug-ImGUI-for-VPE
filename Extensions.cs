@@ -205,10 +205,10 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             _chart.Add(val);
         }
 
-        public void Draw(string label)
+        public void Draw(string label, bool isDrawChartAllowed = true)
         {
             _Update();
-            if (_drawChart)
+            if (_drawChart && isDrawChartAllowed)
             {
                 _chart.Draw("", label + _val.ToString(_precision));
             }
@@ -216,7 +216,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             {
                 ImGui.Text(label + _val.ToString(_precision));
             }
-        }
+        }        
 
         private void _Update()
         {
