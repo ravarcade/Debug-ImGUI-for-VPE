@@ -15,6 +15,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         DebugUI _debugUI;
         Player _player;
         Camera _camera = null;
+        FreeCam _freeCam = new FreeCam();
         Matrix4x4 _worldToLocal;
 
         public VPEUtilities(DebugUI debugUI, TableBehavior tableBehavior)
@@ -76,6 +77,14 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public float3 ToLocal(float3 c)
         {
             return _worldToLocal.MultiplyPoint(c);
+        }
+
+        public void FreeCam(bool enableFreeCam)
+        {
+            if (_camera == null)
+                _camera = GameObject.FindObjectOfType<Camera>();
+            
+            _freeCam.Update(_camera.transform, enableFreeCam);            
         }
 
     }

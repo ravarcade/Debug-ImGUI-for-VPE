@@ -12,10 +12,10 @@ namespace VisualPinball.Engine.Unity.ImgGUI
     public class DummyDebugUI : IDebugUI
     {
         public string Name => "- Disabled -";
-        public void Init(TableBehavior tableBehavior) {}
-         public void OnPhysicsUpdate(double physicClockMilliseconds, int numSteps, float processingTimeMilliseconds) {}
-         public void OnRegisterFlipper(Entity entity, string name) {}
-         public void OnCreateBall(Entity entity) {}
+        public void Init(TableBehavior tableBehavior) { }
+        public void OnPhysicsUpdate(double physicClockMilliseconds, int numSteps, float processingTimeMilliseconds) { }
+        public void OnRegisterFlipper(Entity entity, string name) { }
+        public void OnCreateBall(Entity entity) { }
     }
 
 }

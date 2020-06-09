@@ -10,6 +10,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         int _corner = 0;
         bool _enableManualBallRoller = false;
         bool _showPerformanceCharts = true;
+        bool _enableFreeCam = false;
 
         public DebugOverlay(DebugUI debugUI)
         {
@@ -55,6 +56,9 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
                 if (ImGuiExt.Button("F9", "Press F9 to show/hide Performance Charts", _showPerformanceCharts ? 0.35f : 0.0f))
                     _showPerformanceCharts = !_showPerformanceCharts;
+
+                if (ImGuiExt.Button("F10", "Press F10 to enable/disable FreeCam", _enableFreeCam ? 0.35f : 0.0f))
+                    _enableFreeCam = !_enableFreeCam;
 
                 if (_showPerformanceCharts)
                 {
@@ -106,9 +110,14 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             if (Input.GetKeyDown(KeyCode.F9))
                 _showPerformanceCharts = !_showPerformanceCharts;
 
+            if (Input.GetKeyDown(KeyCode.F10))
+                _enableFreeCam = !_enableFreeCam;
+
+
             if (_enableManualBallRoller && Input.GetMouseButton(0))
                 _debugUI.Balls.ManualBallRoller();
 
+            _debugUI.VPE.FreeCam(_enableFreeCam);
         }
     }
 
