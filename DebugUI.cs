@@ -18,14 +18,17 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         BallMonitor _balls = null;
         PerformanceMonitor _performance = new PerformanceMonitor();
         VPEUtilities _VPEUtilities;
+        DebugProperties _debugProperties = new DebugProperties();
 
         public FlipperMonitor Flippers { get => _flippers; }
         public BallMonitor Balls { get => _balls; }
         public PerformanceMonitor Performance { get => _performance; }
         public VPEUtilities VPE { get => _VPEUtilities; }
+        public DebugProperties Properties { get => _debugProperties; }
 
         DebugOverlay _debugOverlay;
         DebugWindow _debugWindow;
+        
 
         // ==================================================================== IDebugUI ===
 
@@ -59,6 +62,21 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public void OnCreateBall(Entity entity)
         {
             _balls.Register(entity, null);
+        }
+
+        public int AddProperty<T>(int parentIdx, string name, T currentValue, string tip)
+        {
+            return Properties.AddProperty(parentIdx, name, currentValue, tip);
+        }
+
+        public bool GetProperty<T>(int propIdx, ref T val)
+        {
+            return Properties.GetValue(propIdx, ref val);
+        }
+
+        public void SetProperty<T>(int propIdx, T value)
+        {
+            Properties.SetValue(propIdx, value);
         }
 
         // ==================================================================== DebugUI ===

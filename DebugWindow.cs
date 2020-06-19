@@ -9,7 +9,6 @@ namespace VisualPinball.Engine.Unity.ImgGUI
     public class DebugWindow
     {
         DebugUI _debugUI;
-        int _numFramesOnChart = 200;
 
         public VPEUtilities VPE { get => _debugUI.VPE; }
 
@@ -27,6 +26,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
             _debugUI.Balls.OnDebugWindow(this);
             _debugUI.Flippers.OnDebugWindow(this);
+            _debugUI.Properties.Draw();
 
             if (ImGui.Button("Exit"))
             {
