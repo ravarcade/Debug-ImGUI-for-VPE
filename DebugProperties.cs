@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
 using ImGuiNET;
+using System.Linq;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
@@ -15,11 +16,16 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             { typeof(Vector3), () => { return new PropVector3() as IProperty; } },
             { typeof(float3), () => { return new PropFloat3() as IProperty; } },
             { typeof(float), () => { return new PropFloat() as IProperty; } },
+            { typeof(int), () => { return new PropInt() as IProperty; } },
+            { typeof(Quaternion), () => { return new PropQuaternion() as IProperty; } },
+            { typeof(Matrix4x4), () => { return new PropMatrix4x4() as IProperty; } },
         };
 
         List<TreeNode> _propTree = new List<TreeNode>();
         TreeNode _root = new TreeNode();
-        
+        Dictionary<string, int> _quick = new Dictionary<string, int>();
+        int _quick_idx = -1;        
+
         public int AddProperty<T>(int parent, string name, T currentValue, string tip)
         {
             int idx = _propTree.Count;
@@ -52,6 +58,32 @@ namespace VisualPinball.Engine.Unity.ImgGUI
                 var pe = _GetNode(idx).prop as Prop<T>;
                 pe.SetValue(val);
             }
+        
+        }
+        public bool QuickPropertySync<T>(string name, ref T value, string tip)
+        {
+            Prop<T> pe;
+            int idx;
+
+            string uniq = "_Quick_[" + name + "]_[" + typeof(T).FullName + "]";
+            if (_quick.ContainsKey(uniq))
+            {
+                idx = _quick[uniq];
+                pe = _GetNode(idx).prop as Prop<T>;
+                return pe.GetValue(ref value);
+            }
+
+            if (_quick_idx == -1) // add quick node
+            {
+                _quick_idx = AddProperty(-1, "Quick", this, null);
+            }
+
+            idx = AddProperty(_quick_idx, name, value, tip);
+            _quick[uniq] = idx;
+            pe = _GetNode(idx).prop as Prop<T>;
+            pe.SetValue(value);
+
+            return false;
         }
 
         public void Draw()
@@ -60,6 +92,18 @@ namespace VisualPinball.Engine.Unity.ImgGUI
                 return;
 
             var nodes = _propTree.ToArray();
+
+            if (_quick_idx != -1)
+            {
+                var quickNode = _GetNode(_quick_idx);
+                if (quickNode.firstChild != -1 && ImGui.TreeNodeEx("_[" + _quick_idx + "]_Quick", ImGuiTreeNodeFlags.DefaultOpen, "Quick"))
+                {
+                    _Horizontal(ref nodes, quickNode.firstChild, 1);
+                    ImGui.TreePop();
+                    ImGui.Separator();
+                }
+            }
+
             _Horizontal(ref nodes, 0, 0);
         }
 
@@ -92,14 +136,17 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         {
             while (i != -1)
             {
-                if (nodes[i].prop.Draw())
+                if (level != 0 || i != _quick_idx) // skip quick idx
                 {
-                    if (nodes[i].firstChild != -1)
-                        _Horizontal(ref nodes, nodes[i].firstChild, level + 1);
+                    if (nodes[i].prop.Draw())
+                    {
+                        if (nodes[i].firstChild != -1)
+                            _Horizontal(ref nodes, nodes[i].firstChild, level + 1);
 
-                    ImGui.TreePop();
-                    if (level == 0)
-                        ImGui.Separator();
+                        ImGui.TreePop();
+                        if (level == 0)
+                            ImGui.Separator();
+                    }
                 }
                 i = nodes[i].sibling;
             }

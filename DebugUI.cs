@@ -79,6 +79,10 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             Properties.SetValue(propIdx, value);
         }
 
+        public bool QuickPropertySync<T>(string name, ref T value, string tip)
+        {
+            return Properties.QuickPropertySync(name, ref value, tip);
+        }
         // ==================================================================== DebugUI ===
 
         public void OnDraw()

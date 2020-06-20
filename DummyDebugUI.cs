@@ -20,6 +20,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public int AddProperty<T>(int parentIdx, string name, T currentValue, string tip) { return 0; }
         public bool GetProperty<T>(int propIdx, ref T val) { return false; }
         public void SetProperty<T>(int propIdx, T value) { }
+        public bool QuickPropertySync<T>(string name, ref T value, string tip = null) { return false; }
     }
 
 }

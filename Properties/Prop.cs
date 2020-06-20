@@ -13,7 +13,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public void Init(int idx, string name, string tip)
         {
             _isChanged = false;
-            _uniq = name + "_" + idx;
+            _uniq = "_["+idx+"]_" + name;
             _name = name;
             _tip = tip;
         }

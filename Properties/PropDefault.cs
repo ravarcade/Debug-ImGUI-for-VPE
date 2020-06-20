@@ -1,12 +1,19 @@
 using UnityEngine;
 using ImGuiNET;
+using System;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
-    internal class PropDefault<T> : Prop<T>
+    internal interface IPropDefault
     {
-        
+        Type GetType();
+    }
+
+    internal class PropDefault<T> : Prop<T>, IPropDefault
+    {        
         protected T _val;
+
+        Type IPropDefault.GetType() { return typeof(T); }
 
         public override bool GetValue(ref T val) 
         { 
