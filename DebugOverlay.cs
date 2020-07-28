@@ -22,8 +22,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI
             _ProcessKeyboardInput();
             const float DISTANCE = 10.0f;
             var io = ImGui.GetIO();
-            var window_pos = new System.Numerics.Vector2((_corner & 1) != 0 ? io.DisplaySize.X - DISTANCE : DISTANCE, (_corner & 2) != 0 ? io.DisplaySize.Y - DISTANCE : DISTANCE);
-            var window_pos_pivot = new System.Numerics.Vector2((_corner & 1) != 0 ? 1.0f : 0.0f, (_corner & 2) != 0 ? 1.0f : 0.0f);
+            var window_pos = new Vector2((_corner & 1) != 0 ? io.DisplaySize.x - DISTANCE : DISTANCE, (_corner & 2) != 0 ? io.DisplaySize.y - DISTANCE : DISTANCE);
+            var window_pos_pivot = new Vector2((_corner & 1) != 0 ? 1.0f : 0.0f, (_corner & 2) != 0 ? 1.0f : 0.0f);
             ImGui.SetNextWindowPos(window_pos, ImGuiCond.Always, window_pos_pivot);
             ImGui.SetNextWindowBgAlpha(0.35f); // Transparent background
 
@@ -63,7 +63,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
                 if (_showPerformanceCharts)
                 {
                     if (ImGui.IsMousePosValid())
-                        ImGui.Text("Mouse Position: (" + io.MousePos.X.ToString("n1") + ", " + io.MousePos.Y.ToString("n1") + ")");
+                        ImGui.Text("Mouse Position: (" + io.MousePos.x.ToString("n1") + ", " + io.MousePos.y.ToString("n1") + ")");
                     else
                         ImGui.Text("Mouse Position: <invalid>");
                 }

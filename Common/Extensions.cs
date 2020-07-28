@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using UnityEngine;
 using ImGuiNET;
 
 namespace VisualPinball.Engine.Unity.ImgGUI.Tools
@@ -64,7 +65,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             bool _prevLocked = _locked;
             if (_prevLocked)
             {
-                ImGui.PlotLines(label, ref _lockedData[0], _size, 0, _lockedOverlayText, _lockedMin, _lockedMax, new System.Numerics.Vector2(0, _height));
+                ImGui.PlotLines(label, ref _lockedData[0], _size, 0, _lockedOverlayText, _lockedMin, _lockedMax, new Vector2(0, _height));
                 _locked = ImGui.IsItemHovered();
                 return;
             }
@@ -85,7 +86,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI.Tools
             if (precision != null)
                 overlay_text += val.ToString(precision);
 
-            ImGui.PlotLines(label, ref _data[_idx + 1], _size, 0, overlay_text, _min, _max, new System.Numerics.Vector2(0, _height));
+            ImGui.PlotLines(label, ref _data[_idx + 1], _size, 0, overlay_text, _min, _max, new Vector2(0, _height));
             _locked = ImGui.IsItemHovered();
 
             if (!_prevLocked && _locked)

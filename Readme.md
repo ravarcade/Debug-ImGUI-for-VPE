@@ -35,5 +35,5 @@ Adds debug UI based on Dear ImGUI.
 - [Dear ImGUI](https://github.com/ocornut/imgui)
 - [cimgui](https://github.com/cimgui/cimgui)
 - [ImGUI.NET](https://github.com/mellinoe/ImGui.NET)
-- [UnityImGUI](https://github.com/JayPeet/UnityImGUI) managed by [Jay Peet](https://github.com/JayPeet)
+- [Dear ImGui for Unity](https://github.com/realgamessoftware/dear-imgui-unity)
 - [FreeCam](https://gist.github.com/ashleydavis/f025c03a9221bc840a2b)

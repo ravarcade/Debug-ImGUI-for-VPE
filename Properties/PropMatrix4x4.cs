@@ -9,8 +9,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public new bool Draw()
         {
 
-            var rot = _val.rotation.eulerAngles.ToImGui();
-            var pos = ((UnityEngine.Vector3)_val.GetColumn(3)).ToImGui();
+            var rot = _val.rotation.eulerAngles;
+            var pos = (UnityEngine.Vector3)_val.GetColumn(3);
             var scale = _val.lossyScale;
 
             ImGui.Text(_name + ":");
@@ -22,8 +22,8 @@ namespace VisualPinball.Engine.Unity.ImgGUI
 
             if (_isChanged) {
                 _val = Matrix4x4.TRS(
-                        pos.ToVector3(),
-                        Quaternion.Euler(rot.X, rot.Y, rot.Z),
+                        pos,
+                        Quaternion.Euler(rot),
                         scale);
             }
 

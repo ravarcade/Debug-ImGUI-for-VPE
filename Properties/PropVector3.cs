@@ -7,12 +7,7 @@ namespace VisualPinball.Engine.Unity.ImgGUI
     {
         public new bool Draw()
         {
-            var v = _val.ToImGui();
-
-            _isChanged = ImGui.DragFloat3(_name, ref v, 1.0f);
-
-            if (_isChanged)
-                _val = v.ToVector3();
+            _isChanged = ImGui.DragFloat3(_name, ref _val, 1.0f);
 
             if (_tip != null && ImGui.IsItemHovered())
                 ImGui.SetTooltip(_tip);

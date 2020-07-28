@@ -10,7 +10,9 @@
         "Unity.Transforms",
         "ImGUI.NET",
         "VisualPinball.Unity",
-        "VisualPinball.Engine"
+        "VisualPinball.Engine",
+        "RG.ImGui",
+        "RG.ImGui.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,6 +1,5 @@
 using UnityEngine;
 using ImGuiNET;
-using Vector2 = System.Numerics.Vector2;
 
 
 namespace VisualPinball.Engine.Unity.ImgGUI

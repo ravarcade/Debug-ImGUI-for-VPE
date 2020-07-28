@@ -2,6 +2,8 @@ using Unity.Entities;
 using VisualPinball.Unity.Physics.DebugUI;
 using VisualPinball.Unity.VPT.Table;
 using ImGuiNET;
+using ImGuiNET.Unity;
+using UnityEngine;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
@@ -35,11 +37,18 @@ namespace VisualPinball.Engine.Unity.ImgGUI
         public void Init(TableBehavior tableBehavior)
         {
             // add component if not already added in editor
+            var dearImGUIComponent = tableBehavior.gameObject.GetComponent<DearImGui>();
+            if (dearImGUIComponent == null)
+            {
+                dearImGUIComponent = tableBehavior.gameObject.AddComponent<DearImGui>();
+            }
+
             var debugUIComponent = tableBehavior.gameObject.GetComponent<DebugUIComponent>();
             if (debugUIComponent == null)
             {
                 debugUIComponent = tableBehavior.gameObject.AddComponent<DebugUIComponent>();
             }
+
             debugUIComponent.debugUI = this;
             _balls = new BallMonitor(this);
             _debugOverlay = new DebugOverlay(this);

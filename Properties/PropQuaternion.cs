@@ -7,12 +7,12 @@ namespace VisualPinball.Engine.Unity.ImgGUI
     {
         public new bool Draw()
         {
-            var v = _val.eulerAngles.ToImGui();
+            var v = _val.eulerAngles;
 
             _isChanged = ImGui.DragFloat3(_name, ref v, 1.0f);
 
             if (_isChanged)
-                _val = Quaternion.Euler(v.X, v.Y, v.Z);
+                _val = Quaternion.Euler(v);
 
             if (_tip != null && ImGui.IsItemHovered())
                 ImGui.SetTooltip(_tip);

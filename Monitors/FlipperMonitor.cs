@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Unity.Assertions;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -8,8 +9,6 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Physics.Engine;
 using ImGuiNET;
 
-using Vector2 = System.Numerics.Vector2;
-using Vector4 = System.Numerics.Vector4;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {

@@ -1,5 +1,6 @@
 using Unity.Mathematics;
 using ImGuiNET;
+using UnityEngine;
 
 namespace VisualPinball.Engine.Unity.ImgGUI
 {
@@ -7,12 +8,11 @@ namespace VisualPinball.Engine.Unity.ImgGUI
     {
         public new bool Draw()
         {
-            var v = _val.ToImGui();
-
+            Vector3 v = _val;
             _isChanged = ImGui.DragFloat3(_name, ref v, 1.0f);
 
             if (_isChanged)
-                _val = v.ToFloat3();
+                _val = v;
 
             if (_tip != null && ImGui.IsItemHovered())
                 ImGui.SetTooltip(_tip);
