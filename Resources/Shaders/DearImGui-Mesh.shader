@@ -1,26 +1,26 @@
 ﻿Shader "DearImGui/Mesh"
 {
     // shader for Universal render pipeline
-    // SubShader
-    // {
-    //     Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "PreviewType" = "Plane" }
-    //     LOD 100
+    SubShader
+    {
+        Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "PreviewType" = "Plane" }
+        LOD 100
 
-    //     Lighting Off
-    //     Cull Off ZWrite On ZTest Always
-    //     Blend SrcAlpha OneMinusSrcAlpha
+        Lighting Off
+        Cull Off ZWrite On ZTest Always
+        Blend SrcAlpha OneMinusSrcAlpha
 
-    //     Pass
-    //     {
-    //         Name "DEARIMGUI URP"
+        Pass
+        {
+            Name "DEARIMGUI URP"
 
-    //         HLSLPROGRAM
-    //         #pragma vertex ImGuiPassVertex
-    //         #pragma fragment ImGuiPassFrag
-    //         #include "Packages/org.visualpinball.engine.unity.imgui/Resources/Shaders/PassesUniversal.hlsl"
-    //         ENDHLSL
-    //     }
-    // }
+            HLSLPROGRAM
+            #pragma vertex ImGuiPassVertex
+            #pragma fragment ImGuiPassFrag
+            #include "Packages/org.visualpinball.engine.unity.imgui/Resources/Shaders/PassesUniversal.hlsl"
+            ENDHLSL
+        }
+    }
 
     // shader for builtin rendering
     SubShader
