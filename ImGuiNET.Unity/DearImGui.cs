@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Profiling;
+using System;
+using System.Runtime.InteropServices;
 
 namespace ImGuiNET.Unity
 {
@@ -110,6 +112,17 @@ namespace ImGuiNET.Unity
             }
         }
 
+        void _AddFonts()
+        {
+            ImGuiIOPtr io = ImGui.GetIO();
+            var fnt = Resources.Load<Font>("Fonts/Roboto-Medium");
+            var bin = (TextAsset)Resources.Load("Fonts/Roboto-Medium");
+            GCHandle pinnedArray = GCHandle.Alloc(bin.bytes, GCHandleType.Pinned);
+            IntPtr pBytes = pinnedArray.AddrOfPinnedObject();
+            io.Fonts.AddFontFromMemoryTTF(pBytes, ((TextAsset)bin).bytes.Length, 18.0f);
+            io.Fonts.Build();
+        }
+
         void OnEnable() // No OnEnable() default init.... delayed only
         {
             _CreateAssetResources();
@@ -137,7 +150,8 @@ namespace ImGuiNET.Unity
             SetRenderer(RenderUtils.Create(_rendererType, _shaders, _context.textures), io);
             if (_platform == null) Fail(nameof(_platform));
             if (_renderer == null) Fail(nameof(_renderer));
-
+            //_AddFonts();
+           
             void Fail(string reason)
             {
                 OnDisable();
