@@ -6,31 +6,11 @@
 
 sampler2D _Tex;
 
-// half4 unpack_color(uint c)
-// {
-//     half4 color = half4(
-//         (c      ) & 0xff,
-//         (c >>  8) & 0xff,
-//         (c >> 16) & 0xff,
-//         (c >> 24) & 0xff
-//     ) / 255;
-// #ifndef UNITY_COLORSPACE_GAMMA
-//     color.rgb = GammaToLinearSpace(color.rgb);
-// #endif
-//     return color;
-// }
-
 half4 unpack_color(uint c)
 {
-    half4 color = half4(0, 0, 0, 0);
-    color.r = c & 0xff;
-    color.r /= 255;
-    color.g = (c>>8) & 0xff;
-    color.g /= 255;
-    color.b = (c>>16) & 0xff;
-    color.b /= 255;
-    color.a = (c>>24) & 0xff;
-    color.a /= 255;
+    uint4 t = uint4(c & 0xff, c & 0xff00, c & 0xff0000, c & 0xff000000);
+    half4 color = t / uint4(0x1, 0x100, 0x10000, 0x1000000);
+    color /= 255;
 
 #ifndef UNITY_COLORSPACE_GAMMA
     color.rgb = GammaToLinearSpace(color.rgb);

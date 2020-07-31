@@ -12,14 +12,12 @@ SAMPLER(sampler_Tex);
 
 half4 unpack_color(uint c)
 {
-    half4 color = half4(
-        (c      ) & 0xff,
-        (c >>  8) & 0xff,
-        (c >> 16) & 0xff,
-        (c >> 24) & 0xff
-    ) / 255;
+    uint4 t = uint4(c & 0xff, c & 0xff00, c & 0xff0000, c & 0xff000000);
+    half4 color = t / uint4(0x1, 0x100, 0x10000, 0x1000000);
+    color /= 255;
+
 #ifndef UNITY_COLORSPACE_GAMMA
-    color.rgb = FastSRGBToLinear(color.rgb);
+    color.rgb = GammaToLinearSpace(color.rgb);
 #endif
     return color;
 }
